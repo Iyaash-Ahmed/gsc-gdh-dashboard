@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>GSC GDh. Staff Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%230e7c86'/><path d='M18 20h12v12H18zM34 20h12v12H34zM18 36h12v12H18zM34 36h12v12H34z' fill='white'/></svg>">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  :root{
+    --bg:#07131c; --bg2:#0b1f2b; --panel:rgba(255,255,255,.045); --panel-b:rgba(255,255,255,.09);
+    --text:#e8f1f4; --muted:#8aa3ad; --accent:#19b3b1; --accent2:#f2b84b; --danger:#ff6b6b;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:#0b1f2b}
+  html,body{min-height:100%}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(900px 500px at 85% -10%, rgba(25,179,177,.18), transparent 60%),
+      radial-gradient(700px 500px at -10% 110%, rgba(242,184,75,.10), transparent 60%),
+      linear-gradient(180deg,var(--bg),var(--bg2));
+    background-attachment:fixed;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:48px 48px;mask-image:radial-gradient(circle at 50% 30%,#000 30%,transparent 80%);
+  }
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+
+  /* ---------- PIN screen ---------- */
+  #lock{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+  .lock-card{
+    width:100%;max-width:360px;text-align:center;padding:34px 28px 28px;border-radius:24px;
+    background:rgba(10,30,40,.72);border:1px solid var(--panel-b);backdrop-filter:blur(14px);
+    box-shadow:0 30px 80px rgba(0,0,0,.45);
+  }
+  .lock-badge{width:62px;height:62px;border-radius:18px;margin:0 auto 16px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--accent),#0e7c86);font-size:26px;box-shadow:0 10px 30px rgba(25,179,177,.35)}
+  .lock-card h1{font-size:19px;font-weight:600;letter-spacing:.2px}
+  .lock-card p{color:var(--muted);font-size:13.5px;margin-top:6px}
+  .dots{display:flex;gap:12px;justify-content:center;margin:24px 0 22px}
+  .dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.35);transition:.15s}
+  .dot.on{background:var(--accent);border-color:var(--accent);box-shadow:0 0 12px rgba(25,179,177,.7)}
+  .shake{animation:shake .4s}
+  @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  .err .dot{border-color:var(--danger)}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:264px;margin:0 auto}
+  .key{height:58px;border-radius:16px;background:var(--panel);border:1px solid var(--panel-b);font-size:21px;font-weight:500;transition:.12s}
+  .key:hover{background:rgba(255,255,255,.09)}
+  .key:active{transform:scale(.95)}
+  .key.ghost{background:none;border-color:transparent;font-size:18px;color:var(--muted)}
+  .lock-msg{min-height:20px;margin-top:16px;font-size:13px;color:var(--muted)}
+  .lock-msg.bad{color:var(--danger)}
+
+  /* ---------- Dashboard ---------- */
+  #app{display:none;max-width:1220px;margin:0 auto;padding:28px 22px 50px;position:relative}
+  header{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;margin-bottom:26px}
+  .brand{display:flex;gap:14px;align-items:center}
+  .brand-logo{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(135deg,var(--accent),#0e7c86);box-shadow:0 10px 28px rgba(25,179,177,.3)}
+  .brand h1{font-size:20px;font-weight:650;letter-spacing:.2px}
+  .brand p{font-size:13px;color:var(--muted);margin-top:2px}
+  .clock{text-align:right}
+  .clock .time{font-size:28px;font-weight:300;letter-spacing:1px;font-variant-numeric:tabular-nums}
+  .clock .date{font-size:13px;color:var(--muted)}
+  .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:26px}
+  .search{flex:1;position:relative}
+  .search i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .search input{width:100%;height:48px;border-radius:14px;padding:0 50px 0 44px;font-size:15px;color:var(--text);
+    background:var(--panel);border:1px solid var(--panel-b);outline:none;transition:.15s}
+  .search input:focus{border-color:rgba(25,179,177,.6);box-shadow:0 0 0 4px rgba(25,179,177,.12)}
+  .search kbd{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);
+    border:1px solid var(--panel-b);border-radius:6px;padding:2px 7px;font-family:inherit}
+  .icon-btn{height:48px;padding:0 16px;border-radius:14px;background:var(--panel);border:1px solid var(--panel-b);
+    display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);transition:.15s;white-space:nowrap}
+  .icon-btn:hover{color:var(--text);background:rgba(255,255,255,.08)}
+
+  section{margin-bottom:30px}
+  .sec-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .sec-head i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:14px;background:rgba(242,184,75,.14);color:var(--accent2)}
+  .sec-head h2{font-size:15px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:#cfe0e5}
+  .sec-head span{font-size:12px;color:var(--muted);margin-left:2px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .card{display:flex;gap:14px;align-items:center;padding:16px;border-radius:var(--radius);
+    background:var(--panel);border:1px solid var(--panel-b);position:relative;transition:.18s;overflow:hidden}
+  .card::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 40%,rgba(255,255,255,.05),transparent 60%);
+    transform:translateX(-100%);transition:.6s}
+  .card:hover{transform:translateY(-3px);border-color:rgba(25,179,177,.45);background:rgba(25,179,177,.07);box-shadow:0 14px 34px rgba(0,0,0,.3)}
+  .card:hover::after{transform:translateX(100%)}
+  .card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .tile{flex:none;width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:19px;color:#fff}
+  .card-body{min-width:0;flex:1}
+  .card-body b{display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;min-width:0}
+  .card-body b .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card-body small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .go{color:var(--muted);font-size:13px;opacity:.6;transition:.18s}
+  .card:hover .go{opacity:1;color:var(--accent)}
+  .tag{flex:none;font-size:10.5px;padding:2px 7px;border-radius:999px;background:rgba(242,184,75,.14);color:var(--accent2);font-weight:600}
+  .empty{display:none;text-align:center;color:var(--muted);padding:40px 0}
+  footer{margin-top:20px;text-align:center;font-size:12.5px;color:var(--muted)}
+  @media (max-width:600px){
+    .clock{text-align:left}
+    .toolbar .icon-btn span{display:none}
+    .search kbd{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="lock">
+  <div class="lock-card" id="lockCard">
+    <div class="lock-badge"><i class="fa-solid fa-lock"></i></div>
+    <h1>GSC GDh. Staff Dashboard</h1>
+    <p>Enter the 4-digit PIN to continue</p>
+    <div class="dots" id="dots"></div>
+    <div class="keypad" id="keypad"></div>
+    <div class="lock-msg" id="lockMsg">&nbsp;</div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-table-cells-large"></i></div>
+      <div>
+        <h1>Staff Dashboard</h1>
+        <p>Government Services Centre &middot; Gaafu Dhaalu Atoll</p>
+      </div>
+    </div>
+    <div class="clock"><div class="time" id="time">--:--</div><div class="date" id="date"></div></div>
+  </header>
+
+  <div class="toolbar">
+    <label class="search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="q" type="search" placeholder="Search apps and portals…" autocomplete="off" aria-label="Search apps">
+      <kbd>/</kbd>
+    </label>
+    <button class="icon-btn" id="lockBtn" title="Lock dashboard"><i class="fa-solid fa-right-from-bracket"></i><span>Lock</span></button>
+  </div>
+
+  <main id="sections"></main>
+  <div class="empty" id="empty"><i class="fa-regular fa-face-meh"></i>&nbsp; No apps match your search.</div>
+
+  <footer>Government Services Centre &ndash; Gaafu Dhaalu Atoll &middot; IT Unit</footer>
+</div>
+
+<script>
+const PAYLOAD = {"iter": 310000, "salt": "L/wYfBn8/caPEQmI7m4+eg==", "iv": "VFt+yhCSby09BC9w", "data": "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"};
+const PIN_LEN = 4;
+const COLORS = ["#0e8f8d","#2f6fdb","#7a4fd6","#d0563c","#c98a12","#1f9d55","#c43d7a","#3a8fb7","#8a6d3b"];
+
+const $ = id => document.getElementById(id);
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+let entered = "";
+let busy = false;
+
+function store(op, v){ try{ return op === "get" ? sessionStorage.getItem("gscdash") : (op === "set" ? sessionStorage.setItem("gscdash", v) : sessionStorage.removeItem("gscdash")); }catch(e){ return null; } }
+
+async function decrypt(pin){
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey("raw", enc.encode(pin), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey(
+    {name:"PBKDF2", salt:b64(PAYLOAD.salt), iterations:PAYLOAD.iter, hash:"SHA-256"},
+    base, {name:"AES-GCM", length:256}, false, ["decrypt"]);
+  const plain = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64(PAYLOAD.iv)}, key, b64(PAYLOAD.data));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+/* ---------- PIN pad ---------- */
+function drawDots(state){
+  $("dots").innerHTML = Array.from({length:PIN_LEN}, (_,i) => `<span class="dot ${i < entered.length ? "on" : ""}"></span>`).join("");
+  $("dots").classList.toggle("err", state === "err");
+}
+function buildPad(){
+  const keys = ["1","2","3","4","5","6","7","8","9","","0","del"];
+  $("keypad").innerHTML = keys.map(k =>
+    k === "" ? `<span></span>` :
+    k === "del" ? `<button class="key ghost" data-k="del" aria-label="Delete"><i class="fa-solid fa-delete-left"></i></button>` :
+    `<button class="key" data-k="${k}">${k}</button>`).join("");
+  $("keypad").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) press(b.dataset.k); });
+}
+function press(k){
+  if (busy) return;
+  if (k === "del") entered = entered.slice(0,-1);
+  else if (entered.length < PIN_LEN) entered += k;
+  drawDots();
+  $("lockMsg").innerHTML = "&nbsp;"; $("lockMsg").className = "lock-msg";
+  if (entered.length === PIN_LEN) tryPin(entered);
+}
+async function tryPin(pin, silent){
+  busy = true;
+  if (!silent) $("lockMsg").textContent = "Checking…";
+  try{
+    const data = await decrypt(pin);
+    store("set", pin);
+    unlock(data);
+  }catch(e){
+    if (silent){ store("del"); busy = false; return; }
+    $("lockMsg").textContent = "Incorrect PIN. Try again.";
+    $("lockMsg").className = "lock-msg bad";
+    drawDots("err");
+    $("lockCard").classList.remove("shake"); void $("lockCard").offsetWidth; $("lockCard").classList.add("shake");
+    setTimeout(() => { entered = ""; drawDots(); }, 450);
+  }
+  busy = false;
+}
+document.addEventListener("keydown", e => {
+  if ($("lock").style.display === "none") return;
+  if (/^[0-9]$/.test(e.key)) press(e.key);
+  else if (e.key === "Backspace") press("del");
+});
+
+/* ---------- Dashboard ---------- */
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function unlock(data){
+  $("lock").style.display = "none";
+  $("app").style.display = "block";
+  let n = 0;
+  $("sections").innerHTML = data.sections.map(sec => `
+    <section data-sec>
+      <div class="sec-head"><i class="fa-solid ${esc(sec.icon)}"></i><h2>${esc(sec.title)}</h2><span>${sec.items.length}</span></div>
+      <div class="grid">
+        ${sec.items.map(it => { const c = COLORS[n++ % COLORS.length]; return `
+          <a class="card" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer"
+             data-search="${esc((it.name+" "+it.desc+" "+sec.title).toLowerCase())}">
+            <span class="tile" style="background:linear-gradient(135deg,${c},${c}cc)"><i class="fa-solid ${esc(it.icon)}"></i></span>
+            <span class="card-body"><b><span class="nm">${esc(it.name)}</span>${it.tag ? `<span class="tag">${esc(it.tag)}</span>` : ""}</b><small>${esc(it.desc)}</small></span>
+            <i class="fa-solid fa-arrow-up-right-from-square go"></i>
+          </a>`; }).join("")}
+      </div>
+    </section>`).join("");
+  $("q").focus();
+}
+$("q").addEventListener("input", () => {
+  const q = $("q").value.trim().toLowerCase();
+  let any = false;
+  document.querySelectorAll("[data-sec]").forEach(sec => {
+    let shown = 0;
+    sec.querySelectorAll(".card").forEach(c => { const hit = !q || c.dataset.search.includes(q); c.style.display = hit ? "" : "none"; if (hit) shown++; });
+    sec.style.display = shown ? "" : "none"; if (shown) any = true;
+  });
+  $("empty").style.display = any ? "none" : "block";
+});
+document.addEventListener("keydown", e => {
+  if ($("app").style.display !== "block") return;
+  if (e.key === "/" && document.activeElement !== $("q")){ e.preventDefault(); $("q").focus(); }
+  if (e.key === "Escape"){ $("q").value = ""; $("q").dispatchEvent(new Event("input")); }
+});
+$("lockBtn").addEventListener("click", () => {
+  store("del"); entered = ""; $("sections").innerHTML = ""; $("q").value = "";
+  $("app").style.display = "none"; $("lock").style.display = "flex"; drawDots();
+});
+
+function tick(){
+  const d = new Date();
+  $("time").textContent = d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  $("date").textContent = d.toLocaleDateString([], {weekday:"long", day:"numeric", month:"long", year:"numeric"});
+}
+tick(); setInterval(tick, 15000);
+
+buildPad(); drawDots();
+const saved = store("get");
+if (saved) tryPin(saved, true);
+</script>
+</body>
+</html>
